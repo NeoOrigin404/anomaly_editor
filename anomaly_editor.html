@@ -8,30 +8,21 @@
 </head>
 
 <body>
-    <h1>Déclaration d'anomalie</h1>
-    <!-- Formulaire côté client -->
-    <form id="form">
-        <div id="fieldsContainer">
-        </div>
+    <div class="container">
+        <h1>Déclaration d'anomalie</h1>
+        <!-- Formulaire côté client -->
+        <form>
+            <div id="fieldsContainer">
+            </div>
 
-        <div class="buttons">
-            <button type="button" id="addField">Ajouter un champ</button>
-            <button type="submit">Soumettre</button>
-            <button type="button">Exporter en CSV</button>
-            <button type="reset">Réinitialiser</button>
-        </div>
-    </form>
-
-    <!-- Résultat du formulaire sous forme de tableau -->
-    <div class="resultContainer">
-        <h2>Données enregistrées</h2>
-        <table class="dataTable">
-            <thead>
-                <tr class="tableHeader"></tr>
-            </thead>
-            <tbody class="tableBody"></tbody>
-        </table>
+            <div class="buttons">
+                <button type="button" id="addField">Ajouter un champ</button>
+                <button type="submit" id="saveCSV">Enregister</button>
+            </div>
+        </form>
     </div>
+
+    <script src="script.js"></script>
 </body>
 
 </html>
