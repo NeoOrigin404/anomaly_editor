@@ -126,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ content: csvContent, base_url: base_url }),
+      body: JSON.stringify({ content: csv, base_url: base_url }),
     })
       .then((response) => response.json())
       .then((data) => {
