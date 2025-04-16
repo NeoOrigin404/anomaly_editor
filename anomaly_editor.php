@@ -369,7 +369,7 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                     ${Array.from({ length: 8 }, (_, i) => `
                         <div class="option-row">
                             <input type="checkbox" name="option-${i}" ${options[i] && options[i].checked ? 'checked' : ''}>
-                            <input type="text" class="option-text" placeholder="Option ${i + 1}" value="${options[i] ? options[i].text : ''}">
+                            <input type="text" class="option-text" placeholder="Option ${i + 1}" value="${options[i] ? options[i].text : ""}">
                         </div>
                     `).join("")}
                 </div>
