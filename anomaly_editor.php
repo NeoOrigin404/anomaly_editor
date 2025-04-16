@@ -233,6 +233,9 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
             font-weight: bold;
             cursor: pointer;
         }
+        .field-description {
+            margin: 10px 0;
+        }
     </style>
 </head>
 
@@ -251,10 +254,6 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
         
         <!-- Informations générales -->
         <div class="general-info">
-            <div class="form-group">
-                <label class="form-label">Description de la fiche</label>
-                <input type="text" id="fileDescription" value="">
-            </div>
             <div class="form-group">
                 <label class="form-label">Nom de la fiche</label>
                 <input type="text" id="fileName" value="">
@@ -317,7 +316,6 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
         const addFieldButton = document.getElementById("addField");
         const saveCSVButton = document.getElementById("saveCSV");
         const baseUrl = document.getElementById("baseUrl").value;
-        const fileDescription = document.getElementById("fileDescription");
         const fileName = document.getElementById("fileName");
         
         // Modal de suppression
@@ -351,7 +349,7 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
         let fieldCounter = 0;
 
         // Fonction pour créer un nouveau champ
-        function createField(title = "", options = [], otherChecked = false, otherValue = "", precisionChecked = false, precisionValue = "") {
+        function createField(title = "", description = "Descriptif", options = [], otherChecked = false, otherValue = "", precisionChecked = false, precisionValue = "") {
             const fieldId = `field-${fieldCounter++}`;
             const fieldContainer = document.createElement("div");
             fieldContainer.className = "field-container";
@@ -362,6 +360,10 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                 <div>
                     <label class="form-label">Titre du champ</label>
                     <input type="text" class="field-name" value="${title}" required>
+                </div>
+                <div class="field-description">
+                    <label class="form-label">Descriptif</label>
+                    <input type="text" class="field-description-text" value="${description}">
                 </div>
                 <div class="options-container">
                     ${Array.from({ length: 8 }, (_, i) => `
@@ -424,15 +426,12 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                     const cells = lines[i].split(';').map(cell => cell.trim());
                     if (cells.length > 1) {
                         fileName.value = cells[1] || '';
-                        fileDescription.value = cells[1] || '';  // Utiliser le même nom pour la description
                     }
                     break;
                 }
             }
             
             // Récupérer les champs depuis le fichier CSV
-            // Nous allons considérer les 3 premières lignes comme l'en-tête 
-            // (Titre, Descriptif, et ensuite les options)
             if (lines.length > 3) {
                 // La première ligne contient les titres des colonnes
                 const headers = lines[0].split(';').map(h => h.trim());
@@ -445,6 +444,9 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                     // Créer le champ
                     const title = headers[colIndex];
                     if (!title || title === "Fin") continue; // Ignorer les colonnes vides ou "Fin"
+                    
+                    // Récupérer la description
+                    const description = descriptions[colIndex] || "Descriptif";
                     
                     const options = [];
                     
@@ -495,7 +497,8 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                     }
                     
                     createField(
-                        title, 
+                        title,
+                        description,
                         options, 
                         otherValue !== "", 
                         otherValue, 
@@ -512,19 +515,19 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
             const fields = Array.from(document.querySelectorAll(".field-container"));
             const csvData = [];
             
-            // La première colonne est vide (pour les labels de ligne), suivie des titres de champs, puis "Fin"
-            const titles = [""];
+            // La première colonne contient "Titre", suivie des titres de champs, puis "Fin"
+            const titles = ["Titre"];
             fields.forEach(field => {
                 titles.push(field.querySelector(".field-name").value);
             });
             titles.push("Fin");
             csvData.push(titles);
             
-            // Ligne de description - première cellule vide, puis "Descriptif" pour chaque champ, puis "Fin"
-            const descriptions = [""];
-            for (let i = 0; i < fields.length; i++) {
-                descriptions.push("Descriptif");
-            }
+            // Ligne de description - première cellule "Descriptif", puis les descriptions pour chaque champ, puis "Fin"
+            const descriptions = ["Descriptif"];
+            fields.forEach(field => {
+                descriptions.push(field.querySelector(".field-description-text").value || "Descriptif");
+            });
             descriptions.push("Fin");
             csvData.push(descriptions);
             
