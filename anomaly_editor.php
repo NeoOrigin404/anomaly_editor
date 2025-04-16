@@ -412,99 +412,169 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
         function parseCSV(csvContent) {
             if (!csvContent) return;
             
+            // On utilise le point-virgule comme séparateur au lieu de la virgule
             const lines = csvContent.split('\n');
             if (lines.length < 2) return;
             
-            // Vérifier si la première ligne est l'en-tête
-            const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim());
-            
-            // Extraire la description et le nom de fichier (premières lignes spéciales)
-            if (lines.length > 1) {
-                const firstRow = lines[1].split(',').map(cell => cell.replace(/"/g, '').trim());
-                if (firstRow.length >= 2) {
-                    fileDescription.value = firstRow[0] || '';
-                    fileName.value = firstRow[1] || '';
+            // Vérifier si nous avons une ligne "Nom fiche :" dans le CSV
+            let fileNameLine = -1;
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].startsWith("Nom fiche :")) {
+                    fileNameLine = i;
+                    const cells = lines[i].split(';').map(cell => cell.trim());
+                    if (cells.length > 1) {
+                        fileName.value = cells[1] || '';
+                        fileDescription.value = cells[1] || '';  // Utiliser le même nom pour la description
+                    }
+                    break;
                 }
             }
             
-            // Commencer à lire les champs à partir de la troisième ligne
-            for (let i = 2; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
+            // Récupérer les champs depuis le fichier CSV
+            // Nous allons considérer les 3 premières lignes comme l'en-tête 
+            // (Titre, Descriptif, et ensuite les options)
+            if (lines.length > 3) {
+                // La première ligne contient les titres des colonnes
+                const headers = lines[0].split(';').map(h => h.trim());
                 
-                const cells = lines[i].split(',').map(cell => cell.replace(/"/g, '').trim());
-                if (cells.length < 4) continue;
+                // La deuxième ligne contient les descriptions
+                const descriptions = lines[1].split(';').map(d => d.trim());
                 
-                const fieldName = cells[0];
-                const selectedOptions = cells[1].split(';').map(opt => opt.trim()).filter(Boolean);
-                const otherValue = cells[2];
-                const precisionValue = cells[3];
-                
-                // Créer un tableau d'options pour les 8 cases
-                const options = Array.from({ length: 8 }, (_, idx) => {
-                    return {
-                        checked: selectedOptions.includes(`Option ${idx + 1}`),
-                        text: `Option ${idx + 1}`
-                    };
-                });
-                
-                createField(
-                    fieldName, 
-                    options, 
-                    otherValue !== '', 
-                    otherValue, 
-                    precisionValue !== '', 
-                    precisionValue
-                );
+                // Pour chaque colonne (sauf "Autre :", "Precision :" et "Nom fiche :")
+                for (let colIndex = 0; colIndex < headers.length - 1; colIndex++) {
+                    // Ignorer la colonne de fin
+                    if (headers[colIndex] === "Fin") continue;
+                    
+                    // Créer le champ
+                    const title = headers[colIndex];
+                    const options = [];
+                    
+                    // Récupérer les options pour ce champ à partir des lignes suivantes
+                    for (let i = 2; i < lines.length; i++) {
+                        // Ignorer les lignes spéciales
+                        if (lines[i].startsWith("Autre :") || lines[i].startsWith("Precision :") || 
+                            lines[i].startsWith("Nom fiche :") || !lines[i].trim()) {
+                            continue;
+                        }
+                        
+                        const cells = lines[i].split(';');
+                        if (cells.length > colIndex && cells[0].startsWith("Option ")) {
+                            const optionIndex = parseInt(cells[0].split(" ")[1]) - 1;
+                            if (optionIndex >= 0 && optionIndex < 8) {
+                                options[optionIndex] = {
+                                    checked: cells[colIndex].trim() !== "",
+                                    text: cells[colIndex].trim() || `Option ${optionIndex + 1}`
+                                };
+                            }
+                        }
+                    }
+                    
+                    // Chercher les valeurs "Autre" et "Précision" pour ce champ
+                    let otherValue = "";
+                    let precisionValue = "";
+                    
+                    // Chercher la ligne "Autre :"
+                    for (let i = 0; i < lines.length; i++) {
+                        if (lines[i].startsWith("Autre :")) {
+                            const cells = lines[i].split(';');
+                            if (cells.length > colIndex) {
+                                otherValue = cells[colIndex].trim();
+                            }
+                            break;
+                        }
+                    }
+                    
+                    // Chercher la ligne "Precision :"
+                    for (let i = 0; i < lines.length; i++) {
+                        if (lines[i].startsWith("Precision :")) {
+                            const cells = lines[i].split(';');
+                            if (cells.length > colIndex) {
+                                precisionValue = cells[colIndex].trim();
+                            }
+                            break;
+                        }
+                    }
+                    
+                    createField(
+                        title, 
+                        options, 
+                        otherValue !== "", 
+                        otherValue, 
+                        precisionValue !== "", 
+                        precisionValue
+                    );
+                }
             }
         }
 
         // Fonction pour générer le CSV
         function generateCSV() {
+            // Récupérer tous les champs
             const fields = Array.from(document.querySelectorAll(".field-container"));
             const csvData = [];
-
-            // En-têtes
-            const headers = ["Champ", "Réponse", "Autre", "Précision"];
-            csvData.push(headers);
             
-            // Informations générales de la fiche
-            csvData.push([
-                fileDescription.value || "Description", 
-                fileName.value || "Nom de la fiche", 
-                "", 
-                ""
-            ]);
-
-            // Données des champs
-            for (const field of fields) {
-                const fieldName = field.querySelector(".field-name").value;
-
-                const options = Array.from(field.querySelectorAll(".option-row"))
-                    .map((row) => {
-                        const checkbox = row.querySelector('input[type="checkbox"]');
-                        const text = row.querySelector(".option-text").value;
-                        return checkbox.checked ? text : null;
-                    })
-                    .filter(Boolean);
-
-                const otherCheckbox = field.querySelector('input[id^="other-"]');
-                const precisionCheckbox = field.querySelector('input[id^="precision-"]');
-                const otherText = field.querySelector(".other-text").value;
-                const precisionText = field.querySelector(".precision-text").value;
-
-                const row = [
-                    fieldName,
-                    options.join("; "),
-                    otherCheckbox.checked ? otherText : "",
-                    precisionCheckbox.checked ? precisionText : "",
-                ];
-
-                csvData.push(row);
+            // Obtenir les titres de champs
+            const titles = fields.map(field => field.querySelector(".field-name").value);
+            // Ajouter "Fin" à la dernière colonne
+            titles.push("Fin");
+            csvData.push(titles);
+            
+            // Ligne de description (on utilise les mêmes valeurs que les titres)
+            const descriptions = titles.map(title => `Descriptif`);
+            csvData.push(descriptions);
+            
+            // Générer les lignes d'options
+            for (let optionIndex = 0; optionIndex < 8; optionIndex++) {
+                const optionRow = [`Option ${optionIndex + 1}`];
+                
+                // Pour chaque champ
+                for (let fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+                    const field = fields[fieldIndex];
+                    const optionRows = field.querySelectorAll(".option-row");
+                    if (optionIndex < optionRows.length) {
+                        const checkbox = optionRows[optionIndex].querySelector('input[type="checkbox"]');
+                        const text = optionRows[optionIndex].querySelector(".option-text").value;
+                        optionRow.push(checkbox.checked ? text : "");
+                    } else {
+                        optionRow.push("");
+                    }
+                }
+                optionRow.push("Fin"); // Ajouter "Fin" à la dernière colonne
+                csvData.push(optionRow);
             }
-
-            // Convertir en format CSV
+            
+            // Ligne "Autre :"
+            const otherRow = ["Autre :"];
+            for (const field of fields) {
+                const otherCheckbox = field.querySelector('input[id^="other-"]');
+                const otherText = field.querySelector(".other-text").value;
+                otherRow.push(otherCheckbox.checked ? otherText : "");
+            }
+            otherRow.push("Fin"); // Ajouter "Fin" à la dernière colonne
+            csvData.push(otherRow);
+            
+            // Ligne "Precision :"
+            const precisionRow = ["Precision :"];
+            for (const field of fields) {
+                const precisionCheckbox = field.querySelector('input[id^="precision-"]');
+                const precisionText = field.querySelector(".precision-text").value;
+                precisionRow.push(precisionCheckbox.checked ? precisionText : "");
+            }
+            precisionRow.push("Fin"); // Ajouter "Fin" à la dernière colonne
+            csvData.push(precisionRow);
+            
+            // Ligne "Nom fiche :"
+            const fileNameRow = ["Nom fiche :", fileName.value || ""];
+            // Ajouter des cellules vides pour compléter la ligne
+            for (let i = 0; i < titles.length - 2; i++) {
+                fileNameRow.push("");
+            }
+            fileNameRow.push("Fin"); // Ajouter "Fin" à la dernière colonne
+            csvData.push(fileNameRow);
+            
+            // Convertir en format CSV avec point-virgule comme séparateur
             const csvContent = csvData
-                .map((row) => row.map((cell) => `"${(cell || "").replace(/"/g, '""')}"`).join(","))
+                .map((row) => row.join(";"))
                 .join("\n");
 
             return csvContent;
