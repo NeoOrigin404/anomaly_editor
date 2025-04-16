@@ -440,13 +440,12 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                 // La deuxième ligne contient les descriptions
                 const descriptions = lines[1].split(';').map(d => d.trim());
                 
-                // Pour chaque colonne (sauf "Autre :", "Precision :" et "Nom fiche :")
-                for (let colIndex = 0; colIndex < headers.length - 1; colIndex++) {
-                    // Ignorer la colonne de fin
-                    if (headers[colIndex] === "Fin") continue;
-                    
+                // Pour chaque colonne (sauf la première qui contient les labels de ligne et la dernière "Fin")
+                for (let colIndex = 1; colIndex < headers.length - 1; colIndex++) {
                     // Créer le champ
                     const title = headers[colIndex];
+                    if (!title || title === "Fin") continue; // Ignorer les colonnes vides ou "Fin"
+                    
                     const options = [];
                     
                     // Récupérer les options pour ce champ à partir des lignes suivantes
@@ -513,14 +512,20 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
             const fields = Array.from(document.querySelectorAll(".field-container"));
             const csvData = [];
             
-            // Obtenir les titres de champs
-            const titles = fields.map(field => field.querySelector(".field-name").value);
-            // Ajouter "Fin" à la dernière colonne
+            // La première colonne est vide (pour les labels de ligne), suivie des titres de champs, puis "Fin"
+            const titles = [""];
+            fields.forEach(field => {
+                titles.push(field.querySelector(".field-name").value);
+            });
             titles.push("Fin");
             csvData.push(titles);
             
-            // Ligne de description (on utilise les mêmes valeurs que les titres)
-            const descriptions = titles.map(title => `Descriptif`);
+            // Ligne de description - première cellule vide, puis "Descriptif" pour chaque champ, puis "Fin"
+            const descriptions = [""];
+            for (let i = 0; i < fields.length; i++) {
+                descriptions.push("Descriptif");
+            }
+            descriptions.push("Fin");
             csvData.push(descriptions);
             
             // Générer les lignes d'options
@@ -566,7 +571,7 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
             // Ligne "Nom fiche :"
             const fileNameRow = ["Nom fiche :", fileName.value || ""];
             // Ajouter des cellules vides pour compléter la ligne
-            for (let i = 0; i < titles.length - 2; i++) {
+            for (let i = 2; i < titles.length - 1; i++) {
                 fileNameRow.push("");
             }
             fileNameRow.push("Fin"); // Ajouter "Fin" à la dernière colonne
