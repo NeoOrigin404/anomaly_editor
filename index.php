@@ -17,6 +17,17 @@ if (isset($_POST['delete_file']) && !empty($_POST['file_to_delete'])) {
     $deletedFile = $_GET['deleted'];
     $deleteMessage = "Le fichier \"$deletedFile\" a été supprimé avec succès.";
 }
+
+// Get parameters from current URL or configuration
+$baseUrl = 'https://www.linkappsentreprise.ovh/qualicladeweb/afficheEntite.php';
+$params = [
+    'ID' => $_GET['ID'] ?? '4dab98a2-e602-42cc-8427-2d63425ccd61',
+    'LIEN' => $_GET['LIEN'] ?? '..%2Fwww%2Fmairie3%2F',
+    'TYPE' => $_GET['TYPE'] ?? 'tools'
+];
+
+// Build the return URL
+$returnUrl = $baseUrl . '?' . http_build_query($params);
 ?>
 
 <!DOCTYPE html>
@@ -169,7 +180,7 @@ if (isset($_POST['delete_file']) && !empty($_POST['file_to_delete'])) {
     </div>
 
     <div class="header-actions">
-        <button onclick="history.back()" class="btn btn-secondary">Retour</button>
+        <button onclick="window.location.href='<?php echo htmlspecialchars($returnUrl); ?>'" class="btn btn-secondary">Retour</button>
     </div>
     
     <!-- Modal de confirmation pour la suppression -->
