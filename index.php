@@ -211,6 +211,27 @@ if (isset($_POST['delete_file']) && !empty($_POST['file_to_delete'])) {
                 deleteModal.style.display = "none";
             }
         });
+
+        function validateFileName() {
+    const fileNameInput = document.querySelector('input[name="base_url"]');
+    let fileName = fileNameInput.value.trim();
+    
+    // Si le nom n'est pas vide et ne se termine pas par .csv, ajouter l'extension
+    if (fileName && !fileName.toLowerCase().endsWith('.csv')) {
+        fileName += '.csv';
+        fileNameInput.value = fileName;
+    }
+    
+    return true;
+}
+
+// Attacher la fonction à l'événement de soumission du formulaire
+document.addEventListener('DOMContentLoaded', function() {
+    const newFileForm = document.querySelector('.new-file form');
+    if (newFileForm) {
+        newFileForm.addEventListener('submit', validateFileName);
+    }
+});
     </script>
 </body>
 </html>

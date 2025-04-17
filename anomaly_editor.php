@@ -4,6 +4,12 @@ $base_url = "";
 $csvContent = "";
 if (isset($_POST['base_url'])) {
     $base_url = $_POST['base_url'];
+    
+    // S'assurer que le fichier a l'extension .csv
+    if (!empty($base_url) && !preg_match('/\.csv$/i', $base_url)) {
+        $base_url .= '.csv';
+    }
+    
     if (file_exists($base_url)) {
         $csvContent = file_get_contents($base_url);
     }
@@ -13,6 +19,11 @@ if (isset($_POST['base_url'])) {
 if (isset($_POST['save_csv'])) {
     $content = $_POST['content'];
     $save_url = $_POST['save_url'] ?? $base_url;
+    
+    // S'assurer que le fichier a l'extension .csv
+    if (!empty($save_url) && !preg_match('/\.csv$/i', $save_url)) {
+        $save_url .= '.csv';
+    }
     
     // Enregistrement du fichier
     if (file_put_contents($save_url, $content)) {
@@ -41,9 +52,13 @@ if (isset($_POST['delete_file']) && !empty($_POST['file_to_delete'])) {
 if (isset($_GET['download']) && !empty($_GET['file'])) {
     $file_to_download = $_GET['file'];
     if (file_exists($file_to_download)) {
+        // Extraction du nom de fichier sans l'extension
+        $filename_without_ext = pathinfo(basename($file_to_download), PATHINFO_FILENAME);
+        
         header('Content-Description: File Transfer');
         header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="'.basename($file_to_download).'"');
+        // Forcer l'extension .csv lors du téléchargement
+        header('Content-Disposition: attachment; filename="'.$filename_without_ext.'.csv"');
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
         header('Pragma: public');
@@ -57,9 +72,13 @@ if (isset($_GET['download']) && !empty($_GET['file'])) {
 if (isset($_GET['export']) && !empty($_GET['file'])) {
     $file_to_export = $_GET['file'];
     if (file_exists($file_to_export)) {
+        // Extraction du nom de fichier sans l'extension
+        $filename_without_ext = pathinfo(basename($file_to_export), PATHINFO_FILENAME);
+        
         header('Content-Description: File Transfer');
         header('Content-Type: text/csv');
-        header('Content-Disposition: attachment; filename="'.basename($file_to_export).'"');
+        // Forcer l'extension .csv lors du téléchargement
+        header('Content-Disposition: attachment; filename="'.$filename_without_ext.'.csv"');
         header('Expires: 0');
         header('Cache-Control: must-revalidate');
         header('Pragma: public');
