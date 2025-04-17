@@ -349,7 +349,7 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
         let fieldCounter = 0;
 
         // Fonction pour créer un nouveau champ
-        function createField(title = "", description = "Descriptif", options = [], otherChecked = false, otherValue = "", precisionChecked = false, precisionValue = "") {
+        function createField(title = "", description = "", options = [], otherChecked = false, otherValue = "", precisionChecked = false, precisionValue = "") {
             const fieldId = `field-${fieldCounter++}`;
             const fieldContainer = document.createElement("div");
             fieldContainer.className = "field-container";
