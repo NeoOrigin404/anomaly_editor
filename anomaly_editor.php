@@ -387,7 +387,7 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                     ${Array.from({ length: 8 }, (_, i) => `
                         <div class="option-row">
                             <input type="checkbox" name="option-${i}" ${options[i] && options[i].checked ? 'checked' : ''}>
-                            <input type="text" class="option-text" placeholder="Option ${i + 1}" value="${options[i] ? options[i].text : ""}">
+                            <input type="text" class="option-text" placeholder="Option ${i + 1}" value="${options[i] && options[i].text ? options[i].text : ''}">
                         </div>
                     `).join("")}
                 </div>
@@ -480,9 +480,10 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                         if (cells.length > colIndex && cells[0].startsWith("Option ")) {
                             const optionIndex = parseInt(cells[0].split(" ")[1]) - 1;
                             if (optionIndex >= 0 && optionIndex < 8) {
+                                const cellValue = cells[colIndex].trim();
                                 options[optionIndex] = {
-                                    checked: cells[colIndex].trim() !== "",
-                                    text: cells[colIndex].trim() || `Option ${optionIndex + 1}`
+                                    checked: cellValue !== "",
+                                    text: cellValue
                                 };
                             }
                         }
