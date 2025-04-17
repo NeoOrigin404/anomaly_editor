@@ -18,15 +18,18 @@ if (isset($_POST['delete_file']) && !empty($_POST['file_to_delete'])) {
     $deleteMessage = "Le fichier \"$deletedFile\" a été supprimé avec succès.";
 }
 
-// Get parameters from current URL or configuration
-$baseUrl = 'https://www.linkappsentreprise.ovh/qualicladeweb/afficheEntite.php';
+// Obtenir les paramètres de l'URL ou de la configuration actuelle
+$baseDomain = 'https://www.linkappsentreprise.ovh';
+$path = $_GET['path'] ?? 'qualicladeweb/afficheEntite.php';
+$baseUrl = $baseDomain . '/' . $path;
+
 $params = [
     'ID' => $_GET['ID'] ?? '4dab98a2-e602-42cc-8427-2d63425ccd61',
     'LIEN' => $_GET['LIEN'] ?? '..%2Fwww%2Fmairie3%2F',
     'TYPE' => $_GET['TYPE'] ?? 'tools'
 ];
 
-// Build the return URL
+// Construire l'URL de retour
 $returnUrl = $baseUrl . '?' . http_build_query($params);
 ?>
 
@@ -158,10 +161,7 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
                 <div class="file-item">
                     <p><strong><?php echo htmlspecialchars($file); ?></strong></p>
                     <div class="file-actions">
-                        <form action="anomaly_editor.php" method="post">
-                            <input type="hidden" name="base_url" value="<?php echo htmlspecialchars($file); ?>">
-                            <button type="submit" class="btn">Modifier</button>
-                        </form>
+                        <a href="anomaly_editor.php?file=<?php echo urlencode($file); ?>" class="btn">Modifier</a>
                         <button type="button" class="btn btn-delete" onclick="showDeleteModal('<?php echo htmlspecialchars($file); ?>')">Supprimer</button>
                     </div>
                 </div>
@@ -173,8 +173,8 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
     
     <div class="new-file">
         <h2>Créer un nouveau fichier</h2>
-        <form action="anomaly_editor.php" method="post">
-            <input type="text" name="base_url" placeholder="Nom du nouveau fichier (ex: anomalies.csv)" required>
+        <form action="anomaly_editor.php" method="get">
+            <input type="text" name="file" placeholder="Nom du nouveau fichier (ex: anomalies.csv)" required>
             <button type="submit">Créer</button>
         </form>
     </div>
@@ -228,7 +228,7 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
         });
 
         function validateFileName() {
-    const fileNameInput = document.querySelector('input[name="base_url"]');
+    const fileNameInput = document.querySelector('input[name="file"]');
     let fileName = fileNameInput.value.trim();
     
     // Si le nom n'est pas vide et ne se termine pas par .csv, ajouter l'extension
