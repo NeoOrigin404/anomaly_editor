@@ -142,7 +142,7 @@ if (isset($_POST['delete_file']) && !empty($_POST['file_to_delete'])) {
     
     <?php if (count($csvFiles) > 0): ?>
         <div class="file-list">
-            <h2>Fichiers existants</h2>
+        <h2><?= count($csvFiles) >= 2 ? 'Fichiers existants' : 'Fichier existant' ?></h2>
             <?php foreach ($csvFiles as $file): ?>
                 <div class="file-item">
                     <p><strong><?php echo htmlspecialchars($file); ?></strong></p>
@@ -166,6 +166,10 @@ if (isset($_POST['delete_file']) && !empty($_POST['file_to_delete'])) {
             <input type="text" name="base_url" placeholder="Nom du nouveau fichier (ex: anomalies.csv)" required>
             <button type="submit">Créer</button>
         </form>
+    </div>
+
+    <div class="header-actions">
+        <button onclick="history.back()" class="btn btn-secondary">Retour</button>
     </div>
     
     <!-- Modal de confirmation pour la suppression -->
