@@ -157,7 +157,7 @@ if (isset($_POST['delete_file']) && !empty($_POST['file_to_delete'])) {
             <?php endforeach; ?>
         </div>
     <?php else: ?>
-        <p>Aucun fichier CSV trouvé dans le répertoire.</p>
+        <p>Aucun fichier trouvé dans le répertoire.</p>
     <?php endif; ?>
     
     <div class="new-file">

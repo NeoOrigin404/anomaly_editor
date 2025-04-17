@@ -285,7 +285,6 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                 <button type="button" id="saveCSV" class="btn btn-primary">Enregistrer</button>
                 <?php if (!empty($base_url) && file_exists($base_url)): ?>
                     <a href="?download=1&file=<?php echo urlencode($base_url); ?>" class="btn btn-primary">Télécharger</a>
-                    <a href="?export=1&file=<?php echo urlencode($base_url); ?>" class="btn btn-export">Exporter en CSV</a>
                     <button type="button" id="deleteFileBtn" class="btn btn-danger">Supprimer le fichier</button>
                 <?php endif; ?>
                 <a href="index.php" class="btn btn-secondary">Retour</a>
