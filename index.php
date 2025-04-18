@@ -161,7 +161,10 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
                 <div class="file-item">
                     <p><strong><?php echo htmlspecialchars($file); ?></strong></p>
                     <div class="file-actions">
-                        <a href="anomaly_editor.php?file=<?php echo urlencode($file); ?>" class="btn">Modifier</a>
+                        <form action="anomaly_editor.php" method="post" style="display: inline;">
+                            <input type="hidden" name="base_url" value="<?php echo htmlspecialchars($file); ?>">
+                            <button type="submit" class="btn">Modifier</button>
+                        </form>
                         <button type="button" class="btn btn-delete" onclick="showDeleteModal('<?php echo htmlspecialchars($file); ?>')">Supprimer</button>
                     </div>
                 </div>
@@ -173,8 +176,8 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
     
     <div class="new-file">
         <h2>Créer un nouveau fichier</h2>
-        <form action="anomaly_editor.php" method="get">
-            <input type="text" name="file" placeholder="Nom du nouveau fichier (ex: anomalies.csv)" required>
+        <form action="anomaly_editor.php" method="post">
+            <input type="text" name="base_url" placeholder="Nom du nouveau fichier (ex: anomalies.csv)" required>
             <button type="submit">Créer</button>
         </form>
     </div>

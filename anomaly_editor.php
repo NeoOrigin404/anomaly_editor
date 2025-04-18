@@ -1,9 +1,9 @@
 <?php
-// Récupère la variable GET 'file' et charge dans csvContent le fichier CSV s'il existe.
+// Récupère la variable POST 'base_url' et charge dans csvContent le fichier CSV s'il existe.
 $base_url = "";
 $csvContent = "";
-if (isset($_GET['file'])) {
-    $base_url = $_GET['file'];
+if (isset($_POST['base_url'])) {
+    $base_url = $_POST['base_url'];
     
     // S'assurer que le fichier a l'extension .csv
     if (!empty($base_url) && !preg_match('/\.csv$/i', $base_url)) {
