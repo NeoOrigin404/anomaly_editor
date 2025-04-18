@@ -61,6 +61,11 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
             justify-content: space-between;
             align-items: center;
         }
+        .file-date {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
         .file-actions {
             display: flex;
             gap: 10px;
@@ -159,7 +164,10 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
         <h2><?= count($csvFiles) >= 2 ? 'Fichiers existants' : 'Fichier existant' ?></h2>
             <?php foreach ($csvFiles as $file): ?>
                 <div class="file-item">
-                    <p><strong><?php echo htmlspecialchars(pathinfo($file, PATHINFO_FILENAME)); ?></strong></p>
+                    <div>
+                        <p><strong><?php echo htmlspecialchars(pathinfo($file, PATHINFO_FILENAME)); ?></strong></p>
+                        <p class="file-date">Créé le <?php echo date('d/m/Y à H:i', filectime($file)); ?></p>
+                    </div>
                     <div class="file-actions">
                         <form action="anomaly_editor.php" method="post" style="display: inline;">
                             <input type="hidden" name="base_url" value="<?php echo htmlspecialchars($file); ?>">
