@@ -159,7 +159,7 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
         <h2><?= count($csvFiles) >= 2 ? 'Fichiers existants' : 'Fichier existant' ?></h2>
             <?php foreach ($csvFiles as $file): ?>
                 <div class="file-item">
-                    <p><strong><?php echo htmlspecialchars($file); ?></strong></p>
+                    <p><strong><?php echo htmlspecialchars(pathinfo($file, PATHINFO_FILENAME)); ?></strong></p>
                     <div class="file-actions">
                         <form action="anomaly_editor.php" method="post" style="display: inline;">
                             <input type="hidden" name="base_url" value="<?php echo htmlspecialchars($file); ?>">
