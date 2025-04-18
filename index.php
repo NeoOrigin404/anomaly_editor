@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 // Liste des fichiers CSV dans le répertoire courant
 $csvFiles = glob('*.csv');
 
@@ -167,6 +169,9 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
                     <div>
                         <p><strong><?php echo htmlspecialchars(pathinfo($file, PATHINFO_FILENAME)); ?></strong></p>
                         <p class="file-date">Créé le <?php echo date('d/m/Y à H:i', filectime($file)); ?></p>
+                        <?php if (isset($_SESSION['file_modified'][$file]) && $_SESSION['file_modified'][$file]): ?>
+                            <p class="file-date">Dernière modification le <?php echo date('d/m/Y à H:i', filemtime($file)); ?></p>
+                        <?php endif; ?>
                     </div>
                     <div class="file-actions">
                         <form action="anomaly_editor.php" method="post" style="display: inline;">
