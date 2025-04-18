@@ -1,6 +1,35 @@
 <?php
+session_start();
+
 // Liste des fichiers CSV dans le répertoire courant
 $csvFiles = glob('*.csv');
+
+// Gestion du renommage du fichier
+if (isset($_POST['rename_file']) && !empty($_POST['old_file']) && !empty($_POST['new_file'])) {
+    $old_file = $_POST['old_file'];
+    $new_file = $_POST['new_file'];
+    
+    // S'assurer que le nouveau nom a l'extension .csv
+    if (!preg_match('/\.csv$/i', $new_file)) {
+        $new_file .= '.csv';
+    }
+    
+    if (file_exists($old_file) && !file_exists($new_file)) {
+        if (rename($old_file, $new_file)) {
+            // Mettre à jour la session si le fichier était marqué comme modifié
+            if (isset($_SESSION['file_modified'][$old_file])) {
+                $_SESSION['file_modified'][$new_file] = $_SESSION['file_modified'][$old_file];
+                unset($_SESSION['file_modified'][$old_file]);
+            }
+            header('Location: index.php?renamed='.urlencode($old_file).'&to='.urlencode($new_file));
+            exit;
+        } else {
+            $rename_error = "Impossible de renommer le fichier.";
+        }
+    } else {
+        $rename_error = "Le fichier n'existe pas ou le nouveau nom est déjà utilisé.";
+    }
+}
 
 // Gestion de la suppression du fichier
 $deleteMessage = '';
@@ -61,6 +90,11 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
             justify-content: space-between;
             align-items: center;
         }
+        .file-date {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
         .file-actions {
             display: flex;
             gap: 10px;
@@ -90,6 +124,13 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
         }
         .btn-delete:hover {
             background-color: #c82333;
+        }
+        .btn-rename {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .btn-rename:hover {
+            background-color: #e0a800;
         }
         input[type="text"] {
             padding: 8px;
@@ -159,12 +200,19 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
         <h2><?= count($csvFiles) >= 2 ? 'Fichiers existants' : 'Fichier existant' ?></h2>
             <?php foreach ($csvFiles as $file): ?>
                 <div class="file-item">
-                    <p><strong><?php echo htmlspecialchars($file); ?></strong></p>
+                    <div>
+                        <p><strong><?php echo htmlspecialchars(pathinfo($file, PATHINFO_FILENAME)); ?></strong></p>
+                        <p class="file-date">Créé le <?php echo date('d/m/Y à H:i', filectime($file)); ?></p>
+                        <?php if (isset($_SESSION['file_modified'][$file]) && $_SESSION['file_modified'][$file]): ?>
+                            <p class="file-date">Dernière modification le <?php echo date('d/m/Y à H:i', filemtime($file)); ?></p>
+                        <?php endif; ?>
+                    </div>
                     <div class="file-actions">
                         <form action="anomaly_editor.php" method="post" style="display: inline;">
                             <input type="hidden" name="base_url" value="<?php echo htmlspecialchars($file); ?>">
                             <button type="submit" class="btn">Modifier</button>
                         </form>
+                        <button type="button" class="btn btn-rename" onclick="showRenameModal('<?php echo htmlspecialchars($file); ?>')">Renommer</button>
                         <button type="button" class="btn btn-delete" onclick="showDeleteModal('<?php echo htmlspecialchars($file); ?>')">Supprimer</button>
                     </div>
                 </div>
@@ -200,6 +248,25 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
                     <button type="submit" name="delete_file" class="btn btn-delete">Supprimer</button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de renommage -->
+    <div id="renameModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 class="modal-title">Renommer le fichier</h3>
+            <form method="POST" id="renameForm">
+                <input type="hidden" name="old_file" id="old-file-input" value="">
+                <div class="form-group">
+                    <label for="newFileName">Nouveau nom du fichier :</label>
+                    <input type="text" id="newFileName" name="new_file" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn close-modal-btn">Annuler</button>
+                    <button type="submit" name="rename_file" class="btn btn-primary">Renommer</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -250,6 +317,42 @@ document.addEventListener('DOMContentLoaded', function() {
         newFileForm.addEventListener('submit', validateFileName);
     }
 });
+
+        // Modal de renommage
+        const renameModal = document.getElementById("renameModal");
+        const oldFileInput = document.getElementById("old-file-input");
+        const newFileNameInput = document.getElementById("newFileName");
+        
+        function showRenameModal(fileName) {
+            renameModal.style.display = "block";
+            oldFileInput.value = fileName;
+            newFileNameInput.value = pathinfo(fileName, PATHINFO_FILENAME);
+        }
+        
+        // Fonction pour extraire le nom du fichier sans extension
+        function pathinfo(filename, option) {
+            const parts = filename.split('.');
+            if (option === 'PATHINFO_FILENAME') {
+                return parts[0];
+            }
+            return parts[1];
+        }
+        
+        // Gestion de la fermeture du modal de renommage
+        document.querySelectorAll('.close-modal, .close-modal-btn').forEach(btn => {
+            btn.addEventListener("click", () => {
+                renameModal.style.display = "none";
+            });
+        });
+        
+        // Validation du formulaire de renommage
+        document.getElementById('renameForm').addEventListener('submit', function(e) {
+            const newFileName = document.getElementById('newFileName').value.trim();
+            if (!newFileName) {
+                e.preventDefault();
+                alert('Veuillez entrer un nom de fichier');
+            }
+        });
     </script>
 </body>
 </html>

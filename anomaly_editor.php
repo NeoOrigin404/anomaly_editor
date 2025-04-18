@@ -1,4 +1,6 @@
 <?php
+session_start();
+
 // Récupère la variable POST 'base_url' et charge dans csvContent le fichier CSV s'il existe.
 $base_url = "";
 $csvContent = "";
@@ -31,6 +33,8 @@ if (isset($_POST['save_csv'])) {
         $message = "Fichier enregistré avec succès !";
         // Stocker le chemin du fichier pour l'option de téléchargement
         $saved_file_path = $save_url;
+        // Marquer le fichier comme modifié
+        $_SESSION['file_modified'][$save_url] = true;
     } else {
         $success = false;
         $message = "Erreur lors de l'enregistrement du fichier.";
