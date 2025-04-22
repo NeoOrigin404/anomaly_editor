@@ -4,6 +4,8 @@ session_start();
 // Récupère la variable POST 'base_url' et charge dans csvContent le fichier CSV s'il existe.
 $base_url = "";
 $csvContent = "";
+$back_url = $_POST['back_url'] ?? $_GET['back_url'] ?? 'index.php';
+$home_menu = $_POST['home_menu'] ?? $_GET['home_menu'] ?? 0;
 if (isset($_POST['base_url'])) {
     $base_url = $_POST['base_url'];
     
@@ -21,20 +23,34 @@ if (isset($_POST['base_url'])) {
 if (isset($_POST['save_csv'])) {
     $content = $_POST['content'];
     $save_url = $_POST['save_url'] ?? $base_url;
+    $back_url = $_POST['back_url'] ?? $back_url;
+    $home_menu = $_POST['home_menu'] ?? $home_menu;
     
     // S'assurer que le fichier a l'extension .csv
     if (!empty($save_url) && !preg_match('/\.csv$/i', $save_url)) {
         $save_url .= '.csv';
     }
     
+    // Vérifier si c'est une création ou une modification
+    $is_new_file = !file_exists($save_url);
+    
     // Enregistrement du fichier
     if (file_put_contents($save_url, $content)) {
         $success = true;
         $message = "Fichier enregistré avec succès !";
+        
         // Stocker le chemin du fichier pour l'option de téléchargement
         $saved_file_path = $save_url;
-        // Marquer le fichier comme modifié
-        $_SESSION['file_modified'][$save_url] = true;
+        
+        // Mettre à jour les dates dans la session
+        if ($is_new_file) {
+            // Nouveau fichier : définir la date de création
+            $_SESSION['file_created'][$save_url] = time();
+            $_SESSION['file_modified'][$save_url] = time();
+        } else {
+            // Fichier existant : mettre à jour la date de modification
+            $_SESSION['file_modified'][$save_url] = time();
+        }
     } else {
         $success = false;
         $message = "Erreur lors de l'enregistrement du fichier.";
@@ -266,7 +282,12 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
     <div class="container">
         <div class="header-actions">
             <h1>Déclaration d'anomalie</h1>
-            <a href="index.php" class="btn btn-secondary">Retour à la liste</a>
+            <a href="<?php echo htmlspecialchars($back_url); ?>" class="btn btn-secondary" style="display: flex; align-items: center; gap: 5px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Retour à la fiche
+            </a>
         </div>
         
         <?php if (isset($delete_error)): ?>
@@ -290,7 +311,7 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                 <?php if ($success && isset($saved_file_path)): ?>
                     <div class="action-buttons">
                         <a href="?download=1&file=<?php echo urlencode($saved_file_path); ?>" class="btn btn-primary">Télécharger le fichier</a>
-                        <a href="index.php" class="btn btn-secondary">Retour à la liste</a>
+                        <a href="<?php echo htmlspecialchars($back_url); ?>" class="btn btn-secondary">Retour à la fiche</a>
                     </div>
                 <?php endif; ?>
             </div>
@@ -634,6 +655,18 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
             baseUrlInput.name = 'save_url';
             baseUrlInput.value = baseUrl || 'anomalies.csv'; // Utiliser l'URL existante ou un nom par défaut
             form.appendChild(baseUrlInput);
+            
+            const backUrlInput = document.createElement('input');
+            backUrlInput.type = 'hidden';
+            backUrlInput.name = 'back_url';
+            backUrlInput.value = '<?php echo htmlspecialchars($back_url); ?>';
+            form.appendChild(backUrlInput);
+            
+            const homeMenuInput = document.createElement('input');
+            homeMenuInput.type = 'hidden';
+            homeMenuInput.name = 'home_menu';
+            homeMenuInput.value = '<?php echo htmlspecialchars($home_menu); ?>';
+            form.appendChild(homeMenuInput);
             
             const saveAction = document.createElement('input');
             saveAction.type = 'hidden';
