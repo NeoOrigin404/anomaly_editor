@@ -4,6 +4,7 @@ session_start();
 // Récupère la variable POST 'base_url' et charge dans csvContent le fichier CSV s'il existe.
 $base_url = "";
 $csvContent = "";
+$back_url = $_POST['back_url'] ?? $_GET['back_url'] ?? 'index.php';
 if (isset($_POST['base_url'])) {
     $base_url = $_POST['base_url'];
     
@@ -266,7 +267,12 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
     <div class="container">
         <div class="header-actions">
             <h1>Déclaration d'anomalie</h1>
-            <a href="index.php" class="btn btn-secondary">Retour à la liste</a>
+            <a href="<?php echo htmlspecialchars($back_url); ?>" class="btn btn-secondary" style="display: flex; align-items: center; gap: 5px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Retour à la fiche
+            </a>
         </div>
         
         <?php if (isset($delete_error)): ?>

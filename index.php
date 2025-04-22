@@ -197,7 +197,7 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
     
     <?php if (count($csvFiles) > 0): ?>
         <div class="file-list">
-        <h2><?= count($csvFiles) >= 2 ? 'Fichiers existants' : 'Fichier existant' ?></h2>
+        <h2>Espace de création</h2>
             <?php foreach ($csvFiles as $file): ?>
                 <div class="file-item">
                     <div>
@@ -210,6 +210,7 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
                     <div class="file-actions">
                         <form action="anomaly_editor.php" method="post" style="display: inline;">
                             <input type="hidden" name="base_url" value="<?php echo htmlspecialchars($file); ?>">
+                            <input type="hidden" name="back_url" value="<?php echo htmlspecialchars($returnUrl); ?>">
                             <button type="submit" class="btn">Modifier</button>
                         </form>
                         <button type="button" class="btn btn-rename" onclick="showRenameModal('<?php echo htmlspecialchars($file); ?>')">Renommer</button>
@@ -225,7 +226,8 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
     <div class="new-file">
         <h2>Créer un nouveau fichier</h2>
         <form action="anomaly_editor.php" method="post">
-            <input type="text" name="base_url" placeholder="Nom du nouveau fichier (ex: anomalies.csv)" required>
+            <input type="text" name="base_url" placeholder="Nom du nouveau fichier (ex: anomalies)" required>
+            <input type="hidden" name="back_url" value="<?php echo htmlspecialchars($returnUrl); ?>">
             <button type="submit">Créer</button>
         </form>
     </div>
