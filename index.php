@@ -4,15 +4,36 @@ session_start();
 // Liste des fichiers CSV dans le répertoire courant
 $csvFiles = glob('*.csv');
 
+// Fonction pour nettoyer le nom du fichier
+function cleanFileName($filename) {
+    // Supprimer l'extension .csv si présente
+    $filename = preg_replace('/\.csv$/i', '', $filename);
+    
+    // Remplacer les caractères spéciaux par des tirets
+    $filename = preg_replace('/[^a-zA-Z0-9]/', '-', $filename);
+    
+    // Supprimer les tirets multiples
+    $filename = preg_replace('/-+/', '-', $filename);
+    
+    // Supprimer les tirets au début et à la fin
+    $filename = trim($filename, '-');
+    
+    // Convertir en minuscules
+    $filename = strtolower($filename);
+    
+    // Si le nom est vide après nettoyage, utiliser un nom par défaut
+    if (empty($filename)) {
+        $filename = 'anomalies';
+    }
+    
+    // Ajouter l'extension .csv
+    return $filename . '.csv';
+}
+
 // Gestion du renommage du fichier
 if (isset($_POST['rename_file']) && !empty($_POST['old_file']) && !empty($_POST['new_file'])) {
     $old_file = $_POST['old_file'];
-    $new_file = $_POST['new_file'];
-    
-    // S'assurer que le nouveau nom a l'extension .csv
-    if (!preg_match('/\.csv$/i', $new_file)) {
-        $new_file .= '.csv';
-    }
+    $new_file = cleanFileName($_POST['new_file']);
     
     if (file_exists($old_file) && !file_exists($new_file)) {
         if (rename($old_file, $new_file)) {
@@ -211,6 +232,7 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
                         <form action="anomaly_editor.php" method="post" style="display: inline;">
                             <input type="hidden" name="base_url" value="<?php echo htmlspecialchars($file); ?>">
                             <input type="hidden" name="back_url" value="<?php echo htmlspecialchars($returnUrl); ?>">
+                            <input type="hidden" name="home_menu" value="1">
                             <button type="submit" class="btn">Modifier</button>
                         </form>
                         <button type="button" class="btn btn-rename" onclick="showRenameModal('<?php echo htmlspecialchars($file); ?>')">Renommer</button>
@@ -225,9 +247,10 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
     
     <div class="new-file">
         <h2>Créer un nouveau fichier</h2>
-        <form action="anomaly_editor.php" method="post">
+        <form action="anomaly_editor.php" method="post" onsubmit="return validateFileName(this);">
             <input type="text" name="base_url" placeholder="Nom du nouveau fichier (ex: anomalies)" required>
             <input type="hidden" name="back_url" value="<?php echo htmlspecialchars($returnUrl); ?>">
+            <input type="hidden" name="home_menu" value="1">
             <button type="submit">Créer</button>
         </form>
     </div>
@@ -299,26 +322,33 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
             }
         });
 
-        function validateFileName() {
-    const fileNameInput = document.querySelector('input[name="file"]');
-    let fileName = fileNameInput.value.trim();
-    
-    // Si le nom n'est pas vide et ne se termine pas par .csv, ajouter l'extension
-    if (fileName && !fileName.toLowerCase().endsWith('.csv')) {
-        fileName += '.csv';
-        fileNameInput.value = fileName;
-    }
-    
-    return true;
-}
-
-// Attacher la fonction à l'événement de soumission du formulaire
-document.addEventListener('DOMContentLoaded', function() {
-    const newFileForm = document.querySelector('.new-file form');
-    if (newFileForm) {
-        newFileForm.addEventListener('submit', validateFileName);
-    }
-});
+        function validateFileName(form) {
+            const fileNameInput = form.querySelector('input[name="base_url"]');
+            let fileName = fileNameInput.value.trim();
+            
+            // Nettoyer le nom du fichier côté client
+            fileName = fileName.replace(/[^a-zA-Z0-9]/g, '-')
+                             .replace(/-+/g, '-')
+                             .replace(/^-|-$/g, '')
+                             .toLowerCase();
+            
+            if (!fileName) {
+                fileName = 'anomalies';
+            }
+            
+            fileNameInput.value = fileName;
+            return true;
+        }
+        
+        // Attacher la fonction à l'événement de soumission du formulaire
+        document.addEventListener('DOMContentLoaded', function() {
+            const newFileForm = document.querySelector('.new-file form');
+            if (newFileForm) {
+                newFileForm.addEventListener('submit', function(e) {
+                    validateFileName(this);
+                });
+            }
+        });
 
         // Modal de renommage
         const renameModal = document.getElementById("renameModal");
