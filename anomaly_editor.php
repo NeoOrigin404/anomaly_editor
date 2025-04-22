@@ -31,14 +31,26 @@ if (isset($_POST['save_csv'])) {
         $save_url .= '.csv';
     }
     
+    // Vérifier si c'est une création ou une modification
+    $is_new_file = !file_exists($save_url);
+    
     // Enregistrement du fichier
     if (file_put_contents($save_url, $content)) {
         $success = true;
         $message = "Fichier enregistré avec succès !";
+        
         // Stocker le chemin du fichier pour l'option de téléchargement
         $saved_file_path = $save_url;
-        // Marquer le fichier comme modifié
-        $_SESSION['file_modified'][$save_url] = true;
+        
+        // Mettre à jour les dates dans la session
+        if ($is_new_file) {
+            // Nouveau fichier : définir la date de création
+            $_SESSION['file_created'][$save_url] = time();
+            $_SESSION['file_modified'][$save_url] = time();
+        } else {
+            // Fichier existant : mettre à jour la date de modification
+            $_SESSION['file_modified'][$save_url] = time();
+        }
     } else {
         $success = false;
         $message = "Erreur lors de l'enregistrement du fichier.";

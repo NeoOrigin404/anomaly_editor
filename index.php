@@ -223,9 +223,13 @@ $returnUrl = $baseUrl . '?' . http_build_query($params);
                 <div class="file-item">
                     <div>
                         <p><strong><?php echo htmlspecialchars(pathinfo($file, PATHINFO_FILENAME)); ?></strong></p>
-                        <p class="file-date">Créé le <?php echo date('d/m/Y à H:i', filectime($file)); ?></p>
-                        <?php if (isset($_SESSION['file_modified'][$file]) && $_SESSION['file_modified'][$file]): ?>
-                            <p class="file-date">Dernière modification le <?php echo date('d/m/Y à H:i', filemtime($file)); ?></p>
+                        <?php if (isset($_SESSION['file_created'][$file])): ?>
+                            <p class="file-date">Créé le <?php echo date('d/m/Y à H:i', $_SESSION['file_created'][$file]); ?></p>
+                        <?php endif; ?>
+                        <?php if (isset($_SESSION['file_modified'][$file]) && 
+                                (!isset($_SESSION['file_created'][$file]) || 
+                                 $_SESSION['file_modified'][$file] > $_SESSION['file_created'][$file])): ?>
+                            <p class="file-date">Dernière modification le <?php echo date('d/m/Y à H:i', $_SESSION['file_modified'][$file]); ?></p>
                         <?php endif; ?>
                     </div>
                     <div class="file-actions">
