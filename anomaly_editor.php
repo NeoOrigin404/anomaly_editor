@@ -353,7 +353,7 @@ if (isset($_GET['export']) && !empty($_GET['file'])) {
                         </g>
                     </svg></button>
                 <?php endif; ?>
-                <a href="index.php" class="btn btn-secondary">Retour</a>
+                <a href="<?php echo $home_menu == 1 ? 'index.php' : $_SERVER['HTTP_REFERER']; ?>" class="btn btn-secondary">Retour</a>
             </div>
         </form>
     </div>
